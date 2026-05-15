@@ -558,17 +558,31 @@ async function refreshData() {
     const res = await fetch(GAS_URL + '?action=read');
     const data = await res.json();
     allTrips = Array.isArray(data) ? data : (data.data || data.trips || []);
-    // Normalize fields
-    allTrips = allTrips.map(r => ({
-      timestamp:  r.Timestamp  || r.timestamp,
-      type:       r.Type       || r.type,
-      plate:      r.Plate      || r.plate,
-      startKm:    parseFloat(r.StartKm  || r.startKm || 0),
-      endKm:      parseFloat(r.EndKm    || r.endKm   || 0),
-      distance:   parseFloat(r.Distance || r.distance|| 0),
-      fuelLiters: parseFloat(r.FuelLiters || r.fuelLiters || 0),
-      fuelCost:   parseFloat(r.FuelCost   || r.fuelCost   || 0)
-    })).filter(r => r.type);
+    // Normalize fields — case-insensitive key lookup (Sheet headers may be Title/camel/lower case)
+    const pick = (row, ...keys) => {
+      const lc = {};
+      Object.keys(row).forEach(k => { lc[k.toLowerCase().replace(/\s+/g,'')] = row[k]; });
+      for (const k of keys) {
+        const v = lc[k.toLowerCase().replace(/\s+/g,'')];
+        if (v !== undefined && v !== '' && v !== null) return v;
+      }
+      return undefined;
+    };
+    allTrips = allTrips.map(r => {
+      const startKm    = parseFloat(pick(r, 'StartKm', 'startkm')) || 0;
+      const endKm      = parseFloat(pick(r, 'EndKm', 'endkm')) || 0;
+      const distRaw    = parseFloat(pick(r, 'Distance', 'distance')) || 0;
+      return {
+        timestamp:  pick(r, 'Timestamp', 'timestamp'),
+        type:       pick(r, 'Type', 'type'),
+        plate:      String(pick(r, 'Plate', 'plate') || ''),
+        startKm,
+        endKm,
+        distance:   distRaw > 0 ? distRaw : Math.max(0, endKm - startKm),
+        fuelLiters: parseFloat(pick(r, 'FuelLiters', 'fuelliters')) || 0,
+        fuelCost:   parseFloat(pick(r, 'FuelCost', 'fuelcost', 'ค่าน้ำมัน(บาท)', 'ค่าน้ำมัน (บาท)')) || 0
+      };
+    }).filter(r => r.type);
     setCloudStatus(true);
     renderDashboard();
   } catch (err) {
