@@ -3,141 +3,52 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Fuel Tracker & ABC Cost Dashboard</title>
-
-<!-- Tailwind CSS -->
+<title>Fuel Tracker • Per-Vehicle Efficiency</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-<!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
-<!-- Google Fonts: Inter + Sarabun (รองรับไทย) -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
 <style>
-  :root {
-    --c-header: #0f1e3d;
-    --c-header-2: #1a2e5c;
-    --c-accent: #3b82f6;
-    --c-accent-2: #60a5fa;
-    --c-bg: #f3f4f6;
-    --c-card: rgba(255, 255, 255, 0.85);
-    --c-border: rgba(255, 255, 255, 0.4);
-  }
-  html, body {
-    font-family: 'Sarabun', 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--c-bg);
-    color: #111827;
-  }
-  .glass-card {
-    background: var(--c-card);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--c-border);
-    border-radius: 1rem;
-    box-shadow: 0 2px 8px rgba(15, 30, 61, 0.06), 0 8px 24px rgba(15, 30, 61, 0.05);
-  }
-  .header-gradient {
-    background: linear-gradient(135deg, var(--c-header) 0%, var(--c-header-2) 100%);
-  }
-  .tab-btn {
-    transition: all 0.2s ease;
-    position: relative;
-  }
-  .tab-btn.active {
-    color: white;
-    background: rgba(255,255,255,0.12);
-  }
-  .tab-btn.active::after {
-    content: "";
-    position: absolute;
-    bottom: -2px; left: 12px; right: 12px;
-    height: 3px; border-radius: 3px;
-    background: #60a5fa;
-  }
-  .filter-btn {
-    transition: all 0.18s ease;
-  }
-  .filter-btn.active {
-    background: #0f1e3d;
-    color: white;
-    border-color: #0f1e3d;
-  }
-  .input-field {
-    width: 100%;
-    padding: 0.7rem 0.9rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.7rem;
-    background: white;
-    font-size: 0.95rem;
-    transition: all 0.15s ease;
-  }
-  .input-field:focus {
-    outline: none;
-    border-color: var(--c-accent);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
-  }
-  .label-field {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.35rem;
-    display: block;
-  }
-  .pulse-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 0 0 rgba(34,197,94,0.7);
-    animation: pulse 1.6s infinite;
-  }
-  .pulse-dot.offline { background: #ef4444; box-shadow: none; animation: none; }
-  @keyframes pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
-    70%  { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
-    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
-  }
-  .toast {
-    position: fixed; top: 1.2rem; left: 50%;
-    transform: translateX(-50%) translateY(-30px);
-    opacity: 0; pointer-events: none;
-    transition: all 0.3s ease;
-    z-index: 100;
-    padding: 0.8rem 1.2rem; border-radius: 0.7rem;
-    font-weight: 600; font-size: 0.95rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  .toast.success { background: #16a34a; color: white; }
-  .toast.error   { background: #dc2626; color: white; }
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2.5px solid rgba(255,255,255,0.4);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .card-stat-icon {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  /* hide scrollbar on filter row mobile */
-  .scroll-x::-webkit-scrollbar { display: none; }
-  .scroll-x { -ms-overflow-style: none; scrollbar-width: none; }
+  :root{--c-header:#0f1e3d;--c-header-2:#1a2e5c;--c-accent:#3b82f6;--c-bg:#f3f4f6;}
+  html,body{font-family:'Sarabun','Inter',system-ui,sans-serif;background:var(--c-bg);color:#111827;}
+  .glass-card{background:rgba(255,255,255,0.88);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.4);border-radius:1rem;box-shadow:0 2px 8px rgba(15,30,61,.06),0 8px 24px rgba(15,30,61,.05);}
+  .header-gradient{background:linear-gradient(135deg,var(--c-header) 0%,var(--c-header-2) 100%);}
+  .tab-btn{transition:all .2s ease;position:relative;}
+  .tab-btn.active{color:white;background:rgba(255,255,255,.12);}
+  .tab-btn.active::after{content:"";position:absolute;bottom:-2px;left:12px;right:12px;height:3px;border-radius:3px;background:#60a5fa;}
+  .filter-btn{transition:all .18s ease;}
+  .filter-btn.active{background:#0f1e3d;color:white;border-color:#0f1e3d;}
+  .input-field{width:100%;padding:.7rem .9rem;border:1px solid #e5e7eb;border-radius:.7rem;background:white;font-size:.95rem;transition:all .15s ease;}
+  .input-field:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+  .label-field{font-size:.85rem;font-weight:600;color:#374151;margin-bottom:.35rem;display:block;}
+  .seg-btn{padding:.7rem;border:1px solid #e5e7eb;background:white;border-radius:.7rem;font-weight:600;cursor:pointer;transition:all .15s;}
+  .seg-btn.selected{background:#0f1e3d;color:white;border-color:#0f1e3d;}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 1.6s infinite;}
+  .pulse-dot.offline{background:#ef4444;animation:none;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6);}70%{box-shadow:0 0 0 10px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}}
+  .toast{position:fixed;top:1.2rem;left:50%;transform:translateX(-50%) translateY(-30px);opacity:0;pointer-events:none;transition:all .3s ease;z-index:100;padding:.8rem 1.2rem;border-radius:.7rem;font-weight:600;font-size:.95rem;box-shadow:0 10px 25px rgba(0,0,0,.15);max-width:90%;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.success{background:#16a34a;color:white;}
+  .toast.error{background:#dc2626;color:white;}
+  .toast.warn{background:#d97706;color:white;}
+  .spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .card-stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .scroll-x::-webkit-scrollbar{display:none;}
+  .scroll-x{-ms-overflow-style:none;scrollbar-width:none;}
+  .badge{display:inline-block;padding:.15rem .5rem;border-radius:.4rem;font-size:.7rem;font-weight:700;}
+  .badge-company{background:#dbeafe;color:#1e40af;}
+  .badge-partner{background:#fef3c7;color:#92400e;}
+  .badge-good{background:#dcfce7;color:#166534;}
+  .badge-warn{background:#fee2e2;color:#991b1b;}
+  .badge-avg{background:#f3f4f6;color:#4b5563;}
 </style>
 </head>
 <body class="min-h-screen">
 
-<!-- =================== HEADER =================== -->
+<!-- HEADER -->
 <header class="header-gradient text-white shadow-lg sticky top-0 z-40">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4">
     <div class="flex items-center justify-between gap-3">
@@ -147,66 +58,65 @@
         </div>
         <div>
           <h1 class="font-bold text-lg sm:text-xl leading-tight">Fuel Tracker</h1>
-          <p class="text-xs sm:text-sm text-blue-200/80 leading-tight">Full-to-Full • ABC Costing Dashboard</p>
+          <p class="text-xs sm:text-sm text-blue-200/80 leading-tight">Per-Vehicle Efficiency Analyzer</p>
         </div>
       </div>
-      <!-- Cloud Live Indicator -->
       <div id="cloudIndicator" class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs sm:text-sm">
         <span class="pulse-dot" id="cloudDot"></span>
         <span id="cloudText" class="font-medium">Cloud Live</span>
       </div>
     </div>
-
-    <!-- Tabs -->
-    <nav class="flex gap-1 mt-4 -mb-1">
-      <button data-tab="record" class="tab-btn active px-4 py-2 rounded-t-lg font-semibold text-sm flex items-center gap-2 text-blue-100">
-        <i data-lucide="clipboard-edit" class="w-4 h-4"></i>
-        <span>บันทึกเที่ยววิ่ง</span>
+    <nav class="flex gap-1 mt-4 -mb-1 overflow-x-auto scroll-x">
+      <button data-tab="record" class="tab-btn active px-4 py-2 rounded-t-lg font-semibold text-sm flex items-center gap-2 text-blue-100 whitespace-nowrap">
+        <i data-lucide="clipboard-edit" class="w-4 h-4"></i><span>บันทึกเที่ยววิ่ง</span>
       </button>
-      <button data-tab="dashboard" class="tab-btn px-4 py-2 rounded-t-lg font-semibold text-sm flex items-center gap-2 text-blue-100">
-        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-        <span>แดชบอร์ดวิเคราะห์</span>
+      <button data-tab="dashboard" class="tab-btn px-4 py-2 rounded-t-lg font-semibold text-sm flex items-center gap-2 text-blue-100 whitespace-nowrap">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>แดชบอร์ดวิเคราะห์</span>
+      </button>
+      <button data-tab="calculator" class="tab-btn px-4 py-2 rounded-t-lg font-semibold text-sm flex items-center gap-2 text-blue-100 whitespace-nowrap">
+        <i data-lucide="calculator" class="w-4 h-4"></i><span>คำนวณค่าเที่ยว</span>
       </button>
     </nav>
   </div>
 </header>
 
-<!-- Toast -->
 <div id="toast" class="toast"></div>
 
 <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-  <!-- =================== RECORD TAB =================== -->
+  <!-- ============== RECORD ============== -->
   <section id="tab-record" class="space-y-5">
     <div class="glass-card p-5 sm:p-7">
       <div class="flex items-center gap-3 mb-5">
-        <div class="card-stat-icon bg-blue-100">
-          <i data-lucide="clipboard-edit" class="w-5 h-5 text-blue-700"></i>
-        </div>
+        <div class="card-stat-icon bg-blue-100"><i data-lucide="clipboard-edit" class="w-5 h-5 text-blue-700"></i></div>
         <div>
           <h2 class="font-bold text-lg text-slate-800">บันทึกเที่ยววิ่ง</h2>
-          <p class="text-sm text-slate-500">กรอกข้อมูลการเติมน้ำมันแบบ Full-to-Full</p>
+          <p class="text-sm text-slate-500">Full-to-Full • คำนวณอัตราสิ้นเปลือง</p>
         </div>
       </div>
-
       <form id="tripForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         <div class="sm:col-span-2">
-          <label class="label-field" for="type">ประเภทรถ</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="typeBtns">
-            <button type="button" data-val="4W"      class="type-btn input-field text-center font-semibold">4 ล้อ</button>
-            <button type="button" data-val="6W"      class="type-btn input-field text-center font-semibold">6 ล้อ</button>
-            <button type="button" data-val="10W"     class="type-btn input-field text-center font-semibold">10 ล้อ</button>
-            <button type="button" data-val="Trailer" class="type-btn input-field text-center font-semibold">พ่วง</button>
+          <label class="label-field">ประเภทรถ</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button type="button" data-val="4W"      class="type-btn seg-btn">4 ล้อ</button>
+            <button type="button" data-val="6W"      class="type-btn seg-btn">6 ล้อ</button>
+            <button type="button" data-val="10W"     class="type-btn seg-btn">10 ล้อ</button>
+            <button type="button" data-val="Trailer" class="type-btn seg-btn">พ่วง</button>
           </div>
           <input type="hidden" name="type" id="type" required />
         </div>
-
+        <div class="sm:col-span-2">
+          <label class="label-field">เจ้าของรถ</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" data-val="บริษัท" class="owner-btn seg-btn flex items-center justify-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i>บริษัท</button>
+            <button type="button" data-val="รถร่วม" class="owner-btn seg-btn flex items-center justify-center gap-2"><i data-lucide="handshake" class="w-4 h-4"></i>รถร่วม</button>
+          </div>
+          <input type="hidden" name="owner" id="owner" required />
+        </div>
         <div class="sm:col-span-2">
           <label class="label-field" for="plate">ทะเบียนรถ</label>
-          <input type="text" id="plate" name="plate" class="input-field" placeholder="เช่น 1กข-1234 กรุงเทพฯ" required />
+          <input type="text" id="plate" name="plate" class="input-field" placeholder="เช่น 1กข-1234 กรุงเทพฯ" required autocomplete="off" />
         </div>
-
         <div>
           <label class="label-field" for="startKm">เลขไมล์เริ่ม (กม.)</label>
           <input type="number" id="startKm" name="startKm" class="input-field" placeholder="0" min="0" step="0.1" required />
@@ -215,7 +125,6 @@
           <label class="label-field" for="endKm">เลขไมล์จบ (กม.)</label>
           <input type="number" id="endKm" name="endKm" class="input-field" placeholder="0" min="0" step="0.1" required />
         </div>
-
         <div>
           <label class="label-field" for="fuelLiters">จำนวนน้ำมัน (ลิตร)</label>
           <input type="number" id="fuelLiters" name="fuelLiters" class="input-field" placeholder="0.00" min="0" step="0.01" required />
@@ -224,193 +133,189 @@
           <label class="label-field" for="fuelCost">ค่าน้ำมัน (บาท)</label>
           <input type="number" id="fuelCost" name="fuelCost" class="input-field" placeholder="0.00" min="0" step="0.01" required />
         </div>
-
-        <!-- Computed preview -->
-        <div class="sm:col-span-2 grid grid-cols-2 gap-3 mt-1">
-          <div class="bg-blue-50 border border-blue-100 rounded-xl p-3">
-            <p class="text-xs text-blue-700 font-medium">ระยะทาง</p>
-            <p class="text-lg font-bold text-blue-900"><span id="previewDistance">0</span> <span class="text-sm font-medium">กม.</span></p>
-          </div>
-          <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
-            <p class="text-xs text-emerald-700 font-medium">อัตราสิ้นเปลือง</p>
-            <p class="text-lg font-bold text-emerald-900"><span id="previewKmL">0.00</span> <span class="text-sm font-medium">กม./ลิตร</span></p>
-          </div>
+        <div class="sm:col-span-2 grid grid-cols-3 gap-3 mt-1">
+          <div class="bg-blue-50 border border-blue-100 rounded-xl p-3"><p class="text-xs text-blue-700 font-medium">ระยะทาง</p><p class="text-lg font-bold text-blue-900"><span id="previewDistance">0</span> <span class="text-xs">กม.</span></p></div>
+          <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3"><p class="text-xs text-emerald-700 font-medium">กม./ลิตร</p><p class="text-lg font-bold text-emerald-900"><span id="previewKmL">0.00</span></p></div>
+          <div class="bg-amber-50 border border-amber-100 rounded-xl p-3"><p class="text-xs text-amber-700 font-medium">฿/ลิตร</p><p class="text-lg font-bold text-amber-900"><span id="previewBahtL">0.00</span></p></div>
         </div>
-
         <div class="sm:col-span-2 mt-2">
-          <button type="submit" id="submitBtn"
-            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-md transition">
-            <i data-lucide="save" class="w-5 h-5" id="submitIcon"></i>
-            <span id="submitText">บันทึกข้อมูล</span>
+          <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-md transition">
+            <i data-lucide="save" class="w-5 h-5" id="submitIcon"></i><span id="submitText">บันทึกข้อมูล</span>
           </button>
         </div>
       </form>
     </div>
   </section>
 
-  <!-- =================== DASHBOARD TAB =================== -->
+  <!-- ============== DASHBOARD ============== -->
   <section id="tab-dashboard" class="space-y-5 hidden">
-
-    <!-- Filter Bar -->
-    <div class="glass-card p-4 sm:p-5">
-      <div class="flex items-center gap-2 mb-3">
-        <i data-lucide="filter" class="w-4 h-4 text-slate-600"></i>
-        <p class="font-semibold text-slate-700 text-sm">กรองตามประเภทรถ</p>
+    <!-- Filters -->
+    <div class="glass-card p-4 sm:p-5 space-y-3">
+      <div>
+        <div class="flex items-center gap-2 mb-2"><i data-lucide="filter" class="w-4 h-4 text-slate-600"></i><p class="font-semibold text-slate-700 text-sm">ประเภทรถ</p></div>
+        <div class="scroll-x flex gap-2 overflow-x-auto pb-1" id="filterType">
+          <button data-filter="ALL"     class="filter-btn active border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full whitespace-nowrap text-sm">ทั้งหมด</button>
+          <button data-filter="4W"      class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full whitespace-nowrap text-sm">4 ล้อ</button>
+          <button data-filter="6W"      class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full whitespace-nowrap text-sm">6 ล้อ</button>
+          <button data-filter="10W"     class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full whitespace-nowrap text-sm">10 ล้อ</button>
+          <button data-filter="Trailer" class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full whitespace-nowrap text-sm">พ่วง</button>
+        </div>
       </div>
-      <div class="scroll-x flex gap-2 overflow-x-auto pb-1" id="filterBar">
-        <button data-filter="ALL"     class="filter-btn active border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-2 rounded-full whitespace-nowrap text-sm">ทั้งหมด</button>
-        <button data-filter="4W"      class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-2 rounded-full whitespace-nowrap text-sm">4 ล้อ</button>
-        <button data-filter="6W"      class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-2 rounded-full whitespace-nowrap text-sm">6 ล้อ</button>
-        <button data-filter="10W"     class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-2 rounded-full whitespace-nowrap text-sm">10 ล้อ</button>
-        <button data-filter="Trailer" class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-2 rounded-full whitespace-nowrap text-sm">พ่วง</button>
+      <div>
+        <div class="flex items-center gap-2 mb-2"><i data-lucide="users" class="w-4 h-4 text-slate-600"></i><p class="font-semibold text-slate-700 text-sm">เจ้าของ</p></div>
+        <div class="flex gap-2" id="filterOwner">
+          <button data-filter="ALL"    class="filter-btn active border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full text-sm">ทั้งหมด</button>
+          <button data-filter="บริษัท" class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full text-sm">บริษัท</button>
+          <button data-filter="รถร่วม" class="filter-btn border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-1.5 rounded-full text-sm">รถร่วม</button>
+        </div>
       </div>
     </div>
-
-    <!-- Summary Cards -->
+    <!-- KPI Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <div class="glass-card p-4 sm:p-5">
-        <div class="flex items-start justify-between mb-2">
-          <p class="text-xs sm:text-sm text-slate-500 font-medium">ระยะทางรวม</p>
-          <div class="card-stat-icon bg-blue-100" style="width:36px;height:36px"><i data-lucide="route" class="w-4 h-4 text-blue-700"></i></div>
-        </div>
-        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800"><span id="sumDistance">0</span></p>
-        <p class="text-xs text-slate-500 mt-1">กิโลเมตร</p>
+        <div class="flex items-start justify-between mb-2"><p class="text-xs sm:text-sm text-slate-500 font-medium">ระยะทางรวม</p><div class="card-stat-icon bg-blue-100"><i data-lucide="route" class="w-4 h-4 text-blue-700"></i></div></div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800"><span id="sumDistance">0</span></p><p class="text-xs text-slate-500 mt-1">กิโลเมตร</p>
       </div>
       <div class="glass-card p-4 sm:p-5">
-        <div class="flex items-start justify-between mb-2">
-          <p class="text-xs sm:text-sm text-slate-500 font-medium">กม./ลิตร เฉลี่ย</p>
-          <div class="card-stat-icon bg-emerald-100" style="width:36px;height:36px"><i data-lucide="gauge" class="w-4 h-4 text-emerald-700"></i></div>
-        </div>
-        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800"><span id="sumKmL">0.00</span></p>
-        <p class="text-xs text-slate-500 mt-1">ประสิทธิภาพ</p>
+        <div class="flex items-start justify-between mb-2"><p class="text-xs sm:text-sm text-slate-500 font-medium">กม./ลิตร เฉลี่ย</p><div class="card-stat-icon bg-emerald-100"><i data-lucide="gauge" class="w-4 h-4 text-emerald-700"></i></div></div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800"><span id="sumKmL">0.00</span></p><p class="text-xs text-slate-500 mt-1">ประสิทธิภาพรวม</p>
       </div>
       <div class="glass-card p-4 sm:p-5">
-        <div class="flex items-start justify-between mb-2">
-          <p class="text-xs sm:text-sm text-slate-500 font-medium">ต้นทุนรวม (ABC)</p>
-          <div class="card-stat-icon bg-amber-100" style="width:36px;height:36px"><i data-lucide="wallet" class="w-4 h-4 text-amber-700"></i></div>
-        </div>
-        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800">฿<span id="sumCost">0</span></p>
-        <p class="text-xs text-slate-500 mt-1">น้ำมัน + คงที่ + ซ่อมบำรุง</p>
+        <div class="flex items-start justify-between mb-2"><p class="text-xs sm:text-sm text-slate-500 font-medium">ราคาน้ำมัน</p><div class="card-stat-icon bg-amber-100"><i data-lucide="droplets" class="w-4 h-4 text-amber-700"></i></div></div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800">฿<span id="sumPricePerL">0.00</span></p><p class="text-xs text-slate-500 mt-1">บาท/ลิตร เฉลี่ย</p>
       </div>
       <div class="glass-card p-4 sm:p-5">
-        <div class="flex items-start justify-between mb-2">
-          <p class="text-xs sm:text-sm text-slate-500 font-medium">ต้นทุนต่อ กม.</p>
-          <div class="card-stat-icon bg-rose-100" style="width:36px;height:36px"><i data-lucide="trending-up" class="w-4 h-4 text-rose-700"></i></div>
-        </div>
-        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800">฿<span id="sumCostKm">0.00</span></p>
-        <p class="text-xs text-slate-500 mt-1">บาท/กิโลเมตร</p>
+        <div class="flex items-start justify-between mb-2"><p class="text-xs sm:text-sm text-slate-500 font-medium">ค่าน้ำมัน/กม.</p><div class="card-stat-icon bg-rose-100"><i data-lucide="trending-up" class="w-4 h-4 text-rose-700"></i></div></div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-800">฿<span id="sumCostKm">0.00</span></p><p class="text-xs text-slate-500 mt-1">บาท/กิโลเมตร</p>
       </div>
     </div>
-
     <!-- Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-      <div class="glass-card p-4 sm:p-5 lg:col-span-3">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="font-bold text-slate-800 text-base">ประสิทธิภาพ กม./ลิตร แยกตามประเภทรถ</h3>
-          <i data-lucide="bar-chart-3" class="w-4 h-4 text-slate-500"></i>
-        </div>
-        <div class="relative h-64 sm:h-72"><canvas id="barChart"></canvas></div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="glass-card p-4 sm:p-5">
+        <h3 class="font-bold text-slate-800 text-base mb-3">กม./ลิตร แยกตามประเภทรถ</h3>
+        <div class="relative h-64"><canvas id="chartType"></canvas></div>
       </div>
-      <div class="glass-card p-4 sm:p-5 lg:col-span-2">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="font-bold text-slate-800 text-base">สัดส่วนต้นทุน (ABC)</h3>
-          <i data-lucide="pie-chart" class="w-4 h-4 text-slate-500"></i>
-        </div>
-        <div class="relative h-64 sm:h-72"><canvas id="donutChart"></canvas></div>
-        <div class="grid grid-cols-3 gap-2 mt-3 text-center">
-          <div><p class="text-xs text-slate-500">น้ำมัน</p><p class="font-bold text-blue-600">40%</p></div>
-          <div><p class="text-xs text-slate-500">คงที่</p><p class="font-bold text-amber-600">50%</p></div>
-          <div><p class="text-xs text-slate-500">ซ่อมบำรุง</p><p class="font-bold text-rose-600">10%</p></div>
-        </div>
+      <div class="glass-card p-4 sm:p-5">
+        <h3 class="font-bold text-slate-800 text-base mb-3">บริษัท vs รถร่วม (กม./ลิตร เฉลี่ย)</h3>
+        <div class="relative h-64"><canvas id="chartOwner"></canvas></div>
       </div>
     </div>
-
-    <!-- Recent Trips Table -->
+    <!-- Per-Vehicle Ranking -->
     <div class="glass-card p-4 sm:p-5">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-bold text-slate-800 text-base">รายการล่าสุด</h3>
-        <button id="reloadBtn" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium">
-          <i data-lucide="refresh-cw" class="w-4 h-4"></i> รีโหลด
-        </button>
+        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2"><i data-lucide="list-ordered" class="w-4 h-4"></i>อัตราสิ้นเปลืองต่อทะเบียน</h3>
+        <button id="reloadBtn" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"><i data-lucide="refresh-cw" class="w-4 h-4"></i>รีโหลด</button>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="text-slate-500 border-b border-slate-200">
-              <th class="text-left font-semibold py-2 pr-3">วันที่</th>
-              <th class="text-left font-semibold py-2 pr-3">ประเภท</th>
               <th class="text-left font-semibold py-2 pr-3">ทะเบียน</th>
-              <th class="text-right font-semibold py-2 pr-3">ระยะทาง</th>
-              <th class="text-right font-semibold py-2 pr-3">ลิตร</th>
+              <th class="text-left font-semibold py-2 pr-3">เจ้าของ</th>
+              <th class="text-left font-semibold py-2 pr-3">ประเภท</th>
+              <th class="text-right font-semibold py-2 pr-3">เที่ยว</th>
+              <th class="text-right font-semibold py-2 pr-3">กม.รวม</th>
               <th class="text-right font-semibold py-2 pr-3">กม./ลิตร</th>
-              <th class="text-right font-semibold py-2">ค่าน้ำมัน</th>
+              <th class="text-right font-semibold py-2 pr-3">± SD</th>
+              <th class="text-right font-semibold py-2 pr-3">฿/กม.</th>
+              <th class="text-center font-semibold py-2">สถานะ</th>
             </tr>
           </thead>
-          <tbody id="tripTable">
-            <tr><td colspan="7" class="text-center py-6 text-slate-400">กำลังโหลดข้อมูล...</td></tr>
-          </tbody>
+          <tbody id="vehicleTable"><tr><td colspan="9" class="text-center py-6 text-slate-400">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
+      </div>
+      <p class="text-xs text-slate-400 mt-3"><i data-lucide="info" class="w-3 h-3 inline -mt-0.5"></i> SD = ส่วนเบี่ยงเบนมาตรฐาน — ค่าน้อย = ขับ consistency • สถานะเทียบกับค่าเฉลี่ยของทั้งกลุ่ม</p>
+    </div>
+  </section>
+
+  <!-- ============== CALCULATOR ============== -->
+  <section id="tab-calculator" class="space-y-5 hidden">
+    <div class="glass-card p-5 sm:p-7">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="card-stat-icon bg-purple-100"><i data-lucide="calculator" class="w-5 h-5 text-purple-700"></i></div>
+        <div><h2 class="font-bold text-lg text-slate-800">คำนวณค่าน้ำมันมาตรฐาน</h2><p class="text-sm text-slate-500">ใช้ baseline จากข้อมูลจริงเพื่อตั้งค่าเที่ยว</p></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label class="label-field">โหมดการอ้างอิง</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" data-mode="plate" class="mode-btn seg-btn">ตามทะเบียนคันใดคันหนึ่ง</button>
+            <button type="button" data-mode="type"  class="mode-btn seg-btn">ตามประเภทรถ (ค่าเฉลี่ยกลุ่ม)</button>
+          </div>
+          <input type="hidden" id="calcMode" value="plate" />
+        </div>
+        <div id="plateSelectWrap">
+          <label class="label-field" for="calcPlate">เลือกทะเบียน</label>
+          <select id="calcPlate" class="input-field"><option value="">— เลือกทะเบียน —</option></select>
+        </div>
+        <div id="typeSelectWrap" class="hidden">
+          <label class="label-field" for="calcType">เลือกประเภทรถ</label>
+          <select id="calcType" class="input-field">
+            <option value="4W">4 ล้อ</option><option value="6W">6 ล้อ</option><option value="10W">10 ล้อ</option><option value="Trailer">พ่วง</option>
+          </select>
+        </div>
+        <div>
+          <label class="label-field" for="calcDistance">ระยะทาง (กม.)</label>
+          <input type="number" id="calcDistance" class="input-field" placeholder="0" min="0" step="0.1" />
+        </div>
+        <div>
+          <label class="label-field" for="calcPrice">ราคาน้ำมัน ฿/ลิตร</label>
+          <input type="number" id="calcPrice" class="input-field" placeholder="auto" min="0" step="0.01" />
+          <p class="text-xs text-slate-400 mt-1">ปล่อยว่าง = ใช้ค่าเฉลี่ยจากข้อมูลจริง</p>
+        </div>
+      </div>
+      <button id="calcBtn" class="mt-5 w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"><i data-lucide="calculator" class="w-5 h-5"></i>คำนวณ</button>
+      <div id="calcResult" class="mt-5 hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="text-xs text-blue-700 font-semibold uppercase tracking-wide">น้ำมันคาดการณ์</p><p class="text-2xl font-extrabold text-blue-900 mt-1"><span id="resLiters">0</span> <span class="text-sm font-medium">ลิตร</span></p></div>
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4"><p class="text-xs text-emerald-700 font-semibold uppercase tracking-wide">ค่าน้ำมันมาตรฐาน</p><p class="text-2xl font-extrabold text-emerald-900 mt-1">฿<span id="resCost">0</span></p></div>
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4"><p class="text-xs text-amber-700 font-semibold uppercase tracking-wide">ค่าน้ำมัน/กม.</p><p class="text-2xl font-extrabold text-amber-900 mt-1">฿<span id="resCostPerKm">0.00</span></p></div>
+        </div>
+        <div class="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm">
+          <p class="text-slate-600"><i data-lucide="info" class="w-4 h-4 inline -mt-0.5 text-slate-500"></i> <strong>Baseline:</strong> <span id="resBaseline">-</span></p>
+          <p class="text-slate-500 text-xs mt-1" id="resBaselineDetail"></p>
+        </div>
       </div>
     </div>
   </section>
 
 </main>
 
-<footer class="text-center text-xs text-slate-400 py-6">
-  © 2026 Logistics Suite • Fuel Tracker
-</footer>
+<footer class="text-center text-xs text-slate-400 py-6">© 2026 Logistics Suite • Per-Vehicle Efficiency</footer>
 
 <script>
-/* =================================================================
- * Configuration
- * ============================================================== */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbw9chYP7TjAxI0EfolgHK_jfvDMSaqUadIqo844U0jZdel7yigmdHv-MYj1JTuEolEs/exec";
 
-// ABC Costing assumption — fuel is 40% of total cost
-// Fixed cost = 50%, Maintenance = 10%
-// → totalCost = fuelCost / 0.4
-const FUEL_RATIO   = 0.40;
-const FIXED_RATIO  = 0.50;
-const MAINT_RATIO  = 0.10;
-
-const TYPE_LABEL = { '4W':'4 ล้อ', '6W':'6 ล้อ', '10W':'10 ล้อ', 'Trailer':'พ่วง' };
+const TYPE_LABEL = { '4W':'4 ล้อ','6W':'6 ล้อ','10W':'10 ล้อ','Trailer':'พ่วง' };
 const TYPE_ORDER = ['4W','6W','10W','Trailer'];
+const OWNER_LIST = ['บริษัท','รถร่วม'];
 
-/* =================================================================
- * State
- * ============================================================== */
 let allTrips = [];
-let currentFilter = 'ALL';
-let barChart, donutChart;
+let filterType = 'ALL';
+let filterOwner = 'ALL';
+let chartType, chartOwner;
 
-/* =================================================================
- * Utilities
- * ============================================================== */
-const $ = (id) => document.getElementById(id);
-const fmt = (n, d=0) => Number(n||0).toLocaleString('th-TH', {minimumFractionDigits:d, maximumFractionDigits:d});
+const $ = id => document.getElementById(id);
+const fmt = (n, d=0) => Number(n||0).toLocaleString('th-TH', { minimumFractionDigits:d, maximumFractionDigits:d });
+const mean = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+const stddev = arr => {
+  if (arr.length < 2) return 0;
+  const m = mean(arr);
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0) / arr.length);
+};
 
-function showToast(msg, type='success') {
+function showToast(msg, type='success'){
   const t = $('toast');
   t.textContent = msg;
   t.className = 'toast show ' + type;
-  setTimeout(() => t.className = 'toast ' + type, 2800);
+  setTimeout(() => t.className = 'toast ' + type, 3500);
+}
+function setCloudStatus(online){
+  $('cloudDot').classList.toggle('offline', !online);
+  $('cloudText').textContent = online ? 'Cloud Live' : 'Offline';
 }
 
-function setCloudStatus(online) {
-  const dot = $('cloudDot');
-  const txt = $('cloudText');
-  if (online) {
-    dot.classList.remove('offline');
-    txt.textContent = 'Cloud Live';
-  } else {
-    dot.classList.add('offline');
-    txt.textContent = 'Offline';
-  }
-}
-
-/* =================================================================
- * Tab switching
- * ============================================================== */
+/* Tabs */
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -418,314 +323,389 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     const tab = btn.dataset.tab;
     $('tab-record').classList.toggle('hidden', tab !== 'record');
     $('tab-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+    $('tab-calculator').classList.toggle('hidden', tab !== 'calculator');
     if (tab === 'dashboard') refreshData();
+    if (tab === 'calculator') populateCalcSelects();
   });
 });
 
-/* =================================================================
- * Type buttons (Record form)
- * ============================================================== */
-document.querySelectorAll('.type-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.type-btn').forEach(b => {
-      b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
-      b.style.background = '';
-      b.style.color = '';
-      b.style.borderColor = '';
+/* Segmented buttons (Type, Owner, Mode) */
+function bindSeg(btnSel, hiddenId){
+  document.querySelectorAll(btnSel).forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll(btnSel).forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      if (hiddenId) $(hiddenId).value = btn.dataset.val;
     });
-    btn.style.background = '#0f1e3d';
-    btn.style.color = 'white';
-    btn.style.borderColor = '#0f1e3d';
-    $('type').value = btn.dataset.val;
   });
-});
+}
+bindSeg('.type-btn', 'type');
+bindSeg('.owner-btn', 'owner');
 
-/* =================================================================
- * Auto-calc preview (distance + km/L)
- * ============================================================== */
-['startKm','endKm','fuelLiters'].forEach(id => {
-  $(id).addEventListener('input', updatePreview);
-});
-function updatePreview() {
-  const start = parseFloat($('startKm').value) || 0;
-  const end   = parseFloat($('endKm').value) || 0;
-  const liters= parseFloat($('fuelLiters').value) || 0;
-  const dist  = Math.max(0, end - start);
-  $('previewDistance').textContent = fmt(dist, dist % 1 === 0 ? 0 : 1);
-  $('previewKmL').textContent = liters > 0 ? fmt(dist/liters, 2) : '0.00';
+/* Preview */
+['startKm','endKm','fuelLiters','fuelCost'].forEach(id => $(id).addEventListener('input', updatePreview));
+function updatePreview(){
+  const s = parseFloat($('startKm').value)||0, e = parseFloat($('endKm').value)||0;
+  const l = parseFloat($('fuelLiters').value)||0, c = parseFloat($('fuelCost').value)||0;
+  const d = Math.max(0, e-s);
+  $('previewDistance').textContent = fmt(d, d%1===0?0:1);
+  $('previewKmL').textContent = l>0 ? fmt(d/l, 2) : '0.00';
+  $('previewBahtL').textContent = l>0 ? fmt(c/l, 2) : '0.00';
 }
 
-/* =================================================================
- * Filter Bar (Dashboard)
- * ============================================================== */
-document.querySelectorAll('#filterBar .filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#filterBar .filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = btn.dataset.filter;
-    renderDashboard();
+/* Filter bars */
+function bindFilter(barId, setter){
+  document.querySelectorAll(`#${barId} button`).forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll(`#${barId} button`).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setter(btn.dataset.filter);
+      renderDashboard();
+    });
   });
-});
+}
+bindFilter('filterType', v => filterType = v);
+bindFilter('filterOwner', v => filterOwner = v);
 
 $('reloadBtn').addEventListener('click', refreshData);
 
-/* =================================================================
- * Submit Form
- * ============================================================== */
-$('tripForm').addEventListener('submit', async (e) => {
+/* Submit */
+$('tripForm').addEventListener('submit', async e => {
   e.preventDefault();
-  if (!$('type').value) {
-    showToast('กรุณาเลือกประเภทรถ', 'error');
-    return;
-  }
-  const start  = parseFloat($('startKm').value);
-  const end    = parseFloat($('endKm').value);
-  const liters = parseFloat($('fuelLiters').value);
-  const cost   = parseFloat($('fuelCost').value);
+  if (!$('type').value)  return showToast('กรุณาเลือกประเภทรถ', 'error');
+  if (!$('owner').value) return showToast('กรุณาเลือกเจ้าของรถ', 'error');
 
-  if (end <= start) {
-    showToast('เลขไมล์จบต้องมากกว่าเลขไมล์เริ่ม', 'error');
-    return;
-  }
-  if (liters <= 0 || cost <= 0) {
-    showToast('กรุณากรอกจำนวนลิตรและค่าน้ำมันให้ถูกต้อง', 'error');
-    return;
-  }
+  const s = parseFloat($('startKm').value), eKm = parseFloat($('endKm').value);
+  const l = parseFloat($('fuelLiters').value), c = parseFloat($('fuelCost').value);
+
+  if (eKm <= s) return showToast('เลขไมล์จบต้องมากกว่าเริ่ม', 'error');
+  if (l <= 0 || c <= 0) return showToast('กรอกลิตร/ค่าน้ำมันให้ถูกต้อง', 'error');
 
   const payload = {
-    type:       $('type').value,
-    plate:      $('plate').value.trim(),
-    startKm:    start,
-    endKm:      end,
-    distance:   end - start,
-    fuelLiters: liters,
-    fuelCost:   cost
+    type:$('type').value, owner:$('owner').value,
+    plate:$('plate').value.trim(),
+    startKm:s, endKm:eKm, distance:eKm-s,
+    fuelLiters:l, fuelCost:c
   };
 
   setSubmitting(true);
   try {
-    // GAS doPost — use text/plain to avoid CORS preflight
     const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
     const txt = await res.text();
-    let ok = true;
-    try { const j = JSON.parse(txt); ok = (j.status === 'ok' || j.success === true || j.result === 'success'); } catch(_) {}
+    let ok = false;
+    try { const j = JSON.parse(txt); ok = j.status === 'ok'; } catch(_){}
     if (!ok) throw new Error('GAS rejected');
 
     showToast('บันทึกข้อมูลสำเร็จ', 'success');
+
+    // Outlier detection — compare to baseline of this plate
+    const tripKmL = (eKm - s) / l;
+    const baseline = computeBaselineForPlate(payload.plate);
+    if (baseline && baseline.trips >= 2 && baseline.avgKmL > 0) {
+      const delta = (tripKmL - baseline.avgKmL) / baseline.avgKmL;
+      if (delta < -0.20) {
+        setTimeout(() => showToast(
+          `⚠️ trip นี้กินน้ำมันมากผิดปกติ — ${tripKmL.toFixed(2)} vs avg ${baseline.avgKmL.toFixed(2)} กม./ลิตร (${(delta*100).toFixed(0)}%)`,
+          'warn'
+        ), 1200);
+      } else if (delta > 0.20) {
+        setTimeout(() => showToast(
+          `🌟 trip นี้ประหยัดกว่าปกติ — ${tripKmL.toFixed(2)} vs avg ${baseline.avgKmL.toFixed(2)} กม./ลิตร (+${(delta*100).toFixed(0)}%)`,
+          'success'
+        ), 1200);
+      }
+    }
+
     $('tripForm').reset();
-    $('type').value = '';
-    document.querySelectorAll('.type-btn').forEach(b => {
-      b.style.background = ''; b.style.color = ''; b.style.borderColor = '';
-    });
+    $('type').value = ''; $('owner').value = '';
+    document.querySelectorAll('.type-btn, .owner-btn').forEach(b => b.classList.remove('selected'));
     updatePreview();
     setCloudStatus(true);
-    allTrips = [];  // force refetch next time
-  } catch (err) {
+    allTrips = [];
+  } catch(err) {
     console.error(err);
-    showToast('บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง', 'error');
+    showToast('บันทึกไม่สำเร็จ', 'error');
     setCloudStatus(false);
-  } finally {
-    setSubmitting(false);
-  }
+  } finally { setSubmitting(false); }
 });
 
-function setSubmitting(loading) {
-  const btn  = $('submitBtn');
-  const icon = $('submitIcon');
-  const text = $('submitText');
+function setSubmitting(loading){
+  const btn = $('submitBtn'), icon = $('submitIcon'), txt = $('submitText');
   btn.disabled = loading;
   btn.classList.toggle('opacity-70', loading);
   if (loading) {
     icon.outerHTML = '<span id="submitIcon" class="spinner"></span>';
-    text.textContent = 'กำลังบันทึก...';
+    txt.textContent = 'กำลังบันทึก...';
   } else {
-    document.getElementById('submitIcon').outerHTML = '<i data-lucide="save" class="w-5 h-5" id="submitIcon"></i>';
-    text.textContent = 'บันทึกข้อมูล';
+    $('submitIcon').outerHTML = '<i data-lucide="save" class="w-5 h-5" id="submitIcon"></i>';
+    txt.textContent = 'บันทึกข้อมูล';
     lucide.createIcons();
   }
 }
 
-/* =================================================================
- * Data Fetch
- * ============================================================== */
-async function refreshData() {
+/* Case-insensitive pick */
+function pick(row, ...keys){
+  const lc = {};
+  Object.keys(row).forEach(k => { lc[k.toLowerCase().replace(/\s+/g,'')] = row[k]; });
+  for (const k of keys){
+    const v = lc[k.toLowerCase().replace(/\s+/g,'')];
+    if (v !== undefined && v !== '' && v !== null) return v;
+  }
+  return undefined;
+}
+
+/* Fetch & normalize */
+async function refreshData(){
   try {
-    $('tripTable').innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">กำลังโหลดข้อมูล...</td></tr>';
+    $('vehicleTable').innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-400">กำลังโหลด...</td></tr>';
     const res = await fetch(GAS_URL + '?action=read');
     const data = await res.json();
-    allTrips = Array.isArray(data) ? data : (data.data || data.trips || []);
-    // Normalize fields — case-insensitive key lookup (Sheet headers may be Title/camel/lower case)
-    const pick = (row, ...keys) => {
-      const lc = {};
-      Object.keys(row).forEach(k => { lc[k.toLowerCase().replace(/\s+/g,'')] = row[k]; });
-      for (const k of keys) {
-        const v = lc[k.toLowerCase().replace(/\s+/g,'')];
-        if (v !== undefined && v !== '' && v !== null) return v;
-      }
-      return undefined;
-    };
-    allTrips = allTrips.map(r => {
-      const startKm    = parseFloat(pick(r, 'StartKm', 'startkm')) || 0;
-      const endKm      = parseFloat(pick(r, 'EndKm', 'endkm')) || 0;
-      const distRaw    = parseFloat(pick(r, 'Distance', 'distance')) || 0;
+    const raw = Array.isArray(data) ? data : (data.data || data.trips || []);
+    allTrips = raw.map(r => {
+      const startKm = parseFloat(pick(r,'StartKm','startkm')) || 0;
+      const endKm   = parseFloat(pick(r,'EndKm','endkm')) || 0;
+      const dist    = parseFloat(pick(r,'Distance','distance')) || 0;
+      const owner   = String(pick(r,'Owner','owner') || '').trim() || 'ไม่ระบุ';
       return {
-        timestamp:  pick(r, 'Timestamp', 'timestamp'),
-        type:       pick(r, 'Type', 'type'),
-        plate:      String(pick(r, 'Plate', 'plate') || ''),
-        startKm,
-        endKm,
-        distance:   distRaw > 0 ? distRaw : Math.max(0, endKm - startKm),
-        fuelLiters: parseFloat(pick(r, 'FuelLiters', 'fuelliters')) || 0,
-        fuelCost:   parseFloat(pick(r, 'FuelCost', 'fuelcost', 'ค่าน้ำมัน(บาท)', 'ค่าน้ำมัน (บาท)')) || 0
+        timestamp: pick(r,'Timestamp','timestamp'),
+        type:      pick(r,'Type','type'),
+        plate:     String(pick(r,'Plate','plate') || '').trim(),
+        owner:     owner,
+        startKm, endKm,
+        distance:  dist > 0 ? dist : Math.max(0, endKm - startKm),
+        fuelLiters:parseFloat(pick(r,'FuelLiters','fuelliters')) || 0,
+        fuelCost:  parseFloat(pick(r,'FuelCost','fuelcost','ค่าน้ำมัน(บาท)','ค่าน้ำมัน (บาท)')) || 0
       };
-    }).filter(r => r.type);
+    }).filter(r => r.type && r.plate);
     setCloudStatus(true);
     renderDashboard();
-  } catch (err) {
+  } catch(err){
     console.error(err);
     setCloudStatus(false);
-    $('tripTable').innerHTML = '<tr><td colspan="7" class="text-center py-6 text-rose-500">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+    $('vehicleTable').innerHTML = '<tr><td colspan="9" class="text-center py-6 text-rose-500">โหลดข้อมูลไม่สำเร็จ</td></tr>';
   }
 }
 
-/* =================================================================
- * Render Dashboard
- * ============================================================== */
-function renderDashboard() {
-  const filtered = currentFilter === 'ALL'
-    ? allTrips
-    : allTrips.filter(t => t.type === currentFilter);
+function applyFilters(trips){
+  return trips.filter(t =>
+    (filterType === 'ALL' || t.type === filterType) &&
+    (filterOwner === 'ALL' || t.owner === filterOwner)
+  );
+}
 
-  // Summary
-  const totalDist   = filtered.reduce((s,t) => s + (t.distance || 0), 0);
-  const totalLiters = filtered.reduce((s,t) => s + (t.fuelLiters || 0), 0);
-  const totalFuel   = filtered.reduce((s,t) => s + (t.fuelCost || 0), 0);
-  const totalCost   = totalFuel > 0 ? totalFuel / FUEL_RATIO : 0;   // ABC inverse from fuel 40%
-  const avgKmL      = totalLiters > 0 ? totalDist / totalLiters : 0;
-  const costPerKm   = totalDist  > 0 ? totalCost / totalDist     : 0;
+function renderDashboard(){
+  const f = applyFilters(allTrips);
 
-  $('sumDistance').textContent = fmt(totalDist, 0);
-  $('sumKmL').textContent      = fmt(avgKmL, 2);
-  $('sumCost').textContent     = fmt(totalCost, 0);
-  $('sumCostKm').textContent   = fmt(costPerKm, 2);
+  const totDist   = f.reduce((s,t)=>s+t.distance,0);
+  const totLiters = f.reduce((s,t)=>s+t.fuelLiters,0);
+  const totCost   = f.reduce((s,t)=>s+t.fuelCost,0);
+  const avgKmL    = totLiters > 0 ? totDist/totLiters : 0;
+  const pricePerL = totLiters > 0 ? totCost/totLiters : 0;
+  const costPerKm = totDist   > 0 ? totCost/totDist   : 0;
 
-  // Bar chart — km/L per type (use full dataset, not filtered, so comparison is meaningful)
-  const efficiencyByType = TYPE_ORDER.map(t => {
-    const rows = allTrips.filter(r => r.type === t);
-    const d = rows.reduce((s,r) => s + (r.distance || 0), 0);
-    const l = rows.reduce((s,r) => s + (r.fuelLiters || 0), 0);
-    return l > 0 ? d / l : 0;
+  $('sumDistance').textContent   = fmt(totDist, 0);
+  $('sumKmL').textContent        = fmt(avgKmL, 2);
+  $('sumPricePerL').textContent  = fmt(pricePerL, 2);
+  $('sumCostKm').textContent     = fmt(costPerKm, 2);
+
+  // Chart 1: by type
+  drawTypeChart();
+  // Chart 2: company vs partner
+  drawOwnerChart();
+  // Vehicle table
+  drawVehicleTable(f, avgKmL);
+}
+
+function drawTypeChart(){
+  const labels = TYPE_ORDER.map(t => TYPE_LABEL[t]);
+  const data = TYPE_ORDER.map(t => {
+    const rows = allTrips.filter(r => r.type === t && (filterOwner==='ALL'||r.owner===filterOwner));
+    const d = rows.reduce((s,r)=>s+r.distance,0), l = rows.reduce((s,r)=>s+r.fuelLiters,0);
+    return l > 0 ? d/l : 0;
   });
-  drawBarChart(TYPE_ORDER.map(t => TYPE_LABEL[t]), efficiencyByType);
+  if (chartType) chartType.destroy();
+  chartType = new Chart($('chartType').getContext('2d'), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'กม./ลิตร', data, backgroundColor:['#3b82f6','#10b981','#f59e0b','#ef4444'], borderRadius:8, barThickness:42 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>` ${c.parsed.y.toFixed(2)} กม./ลิตร` }}},
+      scales:{ y:{beginAtZero:true, ticks:{font:{family:'Sarabun'}}, grid:{color:'#f1f5f9'}}, x:{ticks:{font:{family:'Sarabun',weight:'600'}}, grid:{display:false}}}
+    }
+  });
+}
 
-  // Donut — fixed ABC breakdown
-  drawDonutChart([
-    totalCost * FUEL_RATIO,
-    totalCost * FIXED_RATIO,
-    totalCost * MAINT_RATIO
-  ]);
+function drawOwnerChart(){
+  const labels = TYPE_ORDER.map(t => TYPE_LABEL[t]);
+  const datasets = OWNER_LIST.map((own, i) => ({
+    label: own,
+    data: TYPE_ORDER.map(t => {
+      const rows = allTrips.filter(r => r.type === t && r.owner === own);
+      const d = rows.reduce((s,r)=>s+r.distance,0), l = rows.reduce((s,r)=>s+r.fuelLiters,0);
+      return l > 0 ? d/l : 0;
+    }),
+    backgroundColor: i === 0 ? '#1e40af' : '#f59e0b',
+    borderRadius: 6
+  }));
+  if (chartOwner) chartOwner.destroy();
+  chartOwner = new Chart($('chartOwner').getContext('2d'), {
+    type:'bar',
+    data:{ labels, datasets },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top', labels:{font:{family:'Sarabun', size:11}}}, tooltip:{ callbacks:{ label:c=>` ${c.dataset.label}: ${c.parsed.y.toFixed(2)} กม./ลิตร` }}},
+      scales:{ y:{beginAtZero:true, ticks:{font:{family:'Sarabun'}}, grid:{color:'#f1f5f9'}}, x:{ticks:{font:{family:'Sarabun',weight:'600'}}, grid:{display:false}}}
+    }
+  });
+}
 
-  // Table
-  const tbody = $('tripTable');
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีข้อมูล</td></tr>';
+/* Group trips by plate and compute stats */
+function computeVehicleStats(trips){
+  const groups = {};
+  trips.forEach(t => {
+    if (!groups[t.plate]) groups[t.plate] = [];
+    groups[t.plate].push(t);
+  });
+  return Object.entries(groups).map(([plate, rows]) => {
+    const dist = rows.reduce((s,r)=>s+r.distance,0);
+    const lit  = rows.reduce((s,r)=>s+r.fuelLiters,0);
+    const cost = rows.reduce((s,r)=>s+r.fuelCost,0);
+    const perTrip = rows.filter(r=>r.fuelLiters>0).map(r => r.distance / r.fuelLiters);
+    return {
+      plate,
+      owner: rows[rows.length-1].owner || 'ไม่ระบุ',
+      type:  rows[rows.length-1].type,
+      trips: rows.length,
+      totalDist: dist,
+      avgKmL: lit > 0 ? dist/lit : 0,
+      sd: stddev(perTrip),
+      costPerKm: dist > 0 ? cost/dist : 0
+    };
+  }).sort((a,b) => b.avgKmL - a.avgKmL);
+}
+
+function drawVehicleTable(filteredTrips, fleetAvg){
+  const stats = computeVehicleStats(filteredTrips);
+  const tbody = $('vehicleTable');
+  if (!stats.length){
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-400">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = stats.map(v => {
+    const delta = fleetAvg > 0 ? (v.avgKmL - fleetAvg) / fleetAvg : 0;
+    let status, statusCls;
+    if (delta >= 0.10){ status = '🟢 ดีกว่า avg'; statusCls = 'badge-good'; }
+    else if (delta <= -0.10){ status = '🔴 ต่ำกว่า avg'; statusCls = 'badge-warn'; }
+    else { status = '⚪ อยู่ใน avg'; statusCls = 'badge-avg'; }
+    const ownerCls = v.owner === 'รถร่วม' ? 'badge-partner' : 'badge-company';
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="py-2.5 pr-3 font-semibold text-slate-700">${v.plate}</td>
+        <td class="py-2.5 pr-3"><span class="badge ${ownerCls}">${v.owner}</span></td>
+        <td class="py-2.5 pr-3 text-slate-600">${TYPE_LABEL[v.type] || v.type}</td>
+        <td class="py-2.5 pr-3 text-right">${v.trips}</td>
+        <td class="py-2.5 pr-3 text-right">${fmt(v.totalDist,0)}</td>
+        <td class="py-2.5 pr-3 text-right font-bold ${v.avgKmL >= fleetAvg ? 'text-emerald-600':'text-rose-500'}">${fmt(v.avgKmL, 2)}</td>
+        <td class="py-2.5 pr-3 text-right text-slate-500">±${fmt(v.sd, 2)}</td>
+        <td class="py-2.5 pr-3 text-right">฿${fmt(v.costPerKm, 2)}</td>
+        <td class="py-2.5 text-center"><span class="badge ${statusCls}">${status}</span></td>
+      </tr>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+/* Calculator helpers */
+function computeBaselineForPlate(plate){
+  const rows = allTrips.filter(r => r.plate === plate);
+  if (!rows.length) return null;
+  const dist = rows.reduce((s,r)=>s+r.distance,0);
+  const lit  = rows.reduce((s,r)=>s+r.fuelLiters,0);
+  const cost = rows.reduce((s,r)=>s+r.fuelCost,0);
+  const perTrip = rows.filter(r=>r.fuelLiters>0).map(r => r.distance/r.fuelLiters);
+  return {
+    trips: rows.length, totalDist: dist,
+    avgKmL: lit>0 ? dist/lit : 0,
+    sd: stddev(perTrip),
+    pricePerL: lit>0 ? cost/lit : 0
+  };
+}
+
+function computeBaselineForType(type){
+  const rows = allTrips.filter(r => r.type === type);
+  if (!rows.length) return null;
+  const dist = rows.reduce((s,r)=>s+r.distance,0);
+  const lit  = rows.reduce((s,r)=>s+r.fuelLiters,0);
+  const cost = rows.reduce((s,r)=>s+r.fuelCost,0);
+  return {
+    trips: rows.length, plates: new Set(rows.map(r=>r.plate)).size, totalDist: dist,
+    avgKmL: lit>0 ? dist/lit : 0,
+    pricePerL: lit>0 ? cost/lit : 0
+  };
+}
+
+/* Populate calc selects */
+function populateCalcSelects(){
+  if (!allTrips.length){ refreshData().then(populateCalcSelects); return; }
+  const plates = [...new Set(allTrips.map(t => t.plate))].sort();
+  $('calcPlate').innerHTML = '<option value="">— เลือกทะเบียน —</option>' + plates.map(p => {
+    const own = (allTrips.find(t=>t.plate===p)||{}).owner || '';
+    return `<option value="${p}">${p}${own?' ('+own+')':''}</option>`;
+  }).join('');
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const mode = btn.dataset.mode;
+    $('calcMode').value = mode;
+    $('plateSelectWrap').classList.toggle('hidden', mode !== 'plate');
+    $('typeSelectWrap').classList.toggle('hidden', mode !== 'type');
+  });
+});
+
+$('calcBtn').addEventListener('click', () => {
+  const mode = $('calcMode').value;
+  const dist = parseFloat($('calcDistance').value) || 0;
+  let priceOverride = parseFloat($('calcPrice').value) || 0;
+
+  if (!dist){ showToast('กรุณากรอกระยะทาง', 'error'); return; }
+
+  let baseline, srcText, detailText;
+  if (mode === 'plate'){
+    const plate = $('calcPlate').value;
+    if (!plate){ showToast('กรุณาเลือกทะเบียน', 'error'); return; }
+    baseline = computeBaselineForPlate(plate);
+    if (!baseline){ showToast('ไม่พบข้อมูลทะเบียนนี้', 'error'); return; }
+    srcText = `ทะเบียน ${plate}`;
+    detailText = `อ้างอิงจาก ${baseline.trips} trips · กม./ลิตร เฉลี่ย ${baseline.avgKmL.toFixed(2)} ± ${baseline.sd.toFixed(2)} · ราคา ฿${baseline.pricePerL.toFixed(2)}/ลิตร`;
   } else {
-    const recent = filtered.slice().reverse().slice(0, 10);
-    tbody.innerHTML = recent.map(t => {
-      const kml = t.fuelLiters > 0 ? (t.distance / t.fuelLiters) : 0;
-      const date = t.timestamp ? new Date(t.timestamp).toLocaleDateString('th-TH', {day:'2-digit',month:'short',year:'2-digit'}) : '-';
-      return `
-        <tr class="border-b border-slate-100 hover:bg-slate-50">
-          <td class="py-2.5 pr-3 text-slate-700">${date}</td>
-          <td class="py-2.5 pr-3"><span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">${TYPE_LABEL[t.type] || t.type}</span></td>
-          <td class="py-2.5 pr-3 font-medium text-slate-700">${t.plate || '-'}</td>
-          <td class="py-2.5 pr-3 text-right">${fmt(t.distance, 0)}</td>
-          <td class="py-2.5 pr-3 text-right">${fmt(t.fuelLiters, 2)}</td>
-          <td class="py-2.5 pr-3 text-right font-semibold ${kml >= 5 ? 'text-emerald-600' : 'text-rose-500'}">${fmt(kml, 2)}</td>
-          <td class="py-2.5 text-right text-slate-700">฿${fmt(t.fuelCost, 0)}</td>
-        </tr>`;
-    }).join('');
+    const type = $('calcType').value;
+    baseline = computeBaselineForType(type);
+    if (!baseline){ showToast('ยังไม่มีข้อมูลประเภทนี้', 'error'); return; }
+    srcText = `ประเภท ${TYPE_LABEL[type]} (ค่าเฉลี่ยทั้งกลุ่ม)`;
+    detailText = `อ้างอิงจาก ${baseline.trips} trips · ${baseline.plates} ทะเบียน · กม./ลิตร เฉลี่ย ${baseline.avgKmL.toFixed(2)} · ราคา ฿${baseline.pricePerL.toFixed(2)}/ลิตร`;
   }
-}
 
-/* =================================================================
- * Charts
- * ============================================================== */
-function drawBarChart(labels, values) {
-  const ctx = $('barChart').getContext('2d');
-  if (barChart) barChart.destroy();
-  barChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'กม./ลิตร',
-        data: values,
-        backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444'],
-        borderRadius: 8,
-        barThickness: 38
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: { label: c => ` ${c.parsed.y.toFixed(2)} กม./ลิตร` }
-        }
-      },
-      scales: {
-        y: { beginAtZero: true, ticks: { font: { family: 'Sarabun' } }, grid: { color: '#f1f5f9' } },
-        x: { ticks: { font: { family: 'Sarabun', weight: '600' } }, grid: { display: false } }
-      }
-    }
-  });
-}
+  if (!baseline.avgKmL){ showToast('ไม่สามารถคำนวณ baseline ได้', 'error'); return; }
+  const price = priceOverride > 0 ? priceOverride : baseline.pricePerL;
+  const liters = dist / baseline.avgKmL;
+  const cost = liters * price;
+  const costPerKm = cost / dist;
 
-function drawDonutChart(values) {
-  const ctx = $('donutChart').getContext('2d');
-  if (donutChart) donutChart.destroy();
-  donutChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['ค่าน้ำมัน (40%)', 'ต้นทุนคงที่ (50%)', 'ซ่อมบำรุง (10%)'],
-      datasets: [{
-        data: values,
-        backgroundColor: ['#3b82f6','#f59e0b','#ef4444'],
-        borderWidth: 3,
-        borderColor: '#ffffff'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '65%',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { family: 'Sarabun', size: 11 }, padding: 10, boxWidth: 12 }
-        },
-        tooltip: {
-          callbacks: {
-            label: c => ` ${c.label}: ฿${fmt(c.parsed, 0)}`
-          }
-        }
-      }
-    }
-  });
-}
+  $('resLiters').textContent = fmt(liters, 2);
+  $('resCost').textContent = fmt(cost, 0);
+  $('resCostPerKm').textContent = fmt(costPerKm, 2);
+  $('resBaseline').textContent = srcText;
+  $('resBaselineDetail').textContent = detailText + (priceOverride>0 ? ` · ราคาที่ใช้: ฿${priceOverride.toFixed(2)} (manual)` : '');
+  $('calcResult').classList.remove('hidden');
+  lucide.createIcons();
+});
 
-/* =================================================================
- * Init
- * ============================================================== */
 window.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
-  // Pre-warm with dashboard data so indicator turns green
   refreshData();
 });
 </script>
