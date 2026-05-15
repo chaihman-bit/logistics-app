@@ -61,9 +61,14 @@
           <p class="text-xs sm:text-sm text-blue-200/80 leading-tight">Per-Vehicle Efficiency Analyzer</p>
         </div>
       </div>
-      <div id="cloudIndicator" class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs sm:text-sm">
-        <span class="pulse-dot" id="cloudDot"></span>
-        <span id="cloudText" class="font-medium">Cloud Live</span>
+      <div class="flex items-center gap-2">
+        <button id="logoutBtn" class="hidden bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-full text-xs flex items-center gap-1" title="ออกจากระบบ admin">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i><span>ออก</span>
+        </button>
+        <div id="cloudIndicator" class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs sm:text-sm">
+          <span class="pulse-dot" id="cloudDot"></span>
+          <span id="cloudText" class="font-medium">Cloud Live</span>
+        </div>
       </div>
     </div>
     <nav class="flex gap-1 mt-4 -mb-1 overflow-x-auto scroll-x">
@@ -71,16 +76,46 @@
         <i data-lucide="clipboard-edit" class="w-4 h-4"></i><span>บันทึกเที่ยววิ่ง</span>
       </button>
       <button data-tab="dashboard" class="tab-btn px-4 py-2 rounded-t-lg font-semibold text-sm flex items-center gap-2 text-blue-100 whitespace-nowrap">
-        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>แดชบอร์ดวิเคราะห์</span>
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>แดชบอร์ดวิเคราะห์</span><i data-lucide="lock" class="lock-icon w-3 h-3 text-amber-300"></i>
       </button>
       <button data-tab="calculator" class="tab-btn px-4 py-2 rounded-t-lg font-semibold text-sm flex items-center gap-2 text-blue-100 whitespace-nowrap">
-        <i data-lucide="calculator" class="w-4 h-4"></i><span>คำนวณค่าเที่ยว</span>
+        <i data-lucide="calculator" class="w-4 h-4"></i><span>คำนวณค่าเที่ยว</span><i data-lucide="lock" class="lock-icon w-3 h-3 text-amber-300"></i>
       </button>
     </nav>
   </div>
 </header>
 
 <div id="toast" class="toast"></div>
+
+<!-- Admin Login Modal -->
+<div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4" style="display:none;">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
+        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-800 text-base">เข้าสู่ระบบผู้ดูแล</h3>
+        <p class="text-xs text-slate-500">ส่วนนี้สำหรับผู้ดูแลระบบเท่านั้น</p>
+      </div>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="label-field" for="authUser">Username</label>
+        <input id="authUser" type="text" class="input-field" autocomplete="username" placeholder="admin" />
+      </div>
+      <div>
+        <label class="label-field" for="authPass">Password</label>
+        <input id="authPass" type="password" class="input-field" autocomplete="current-password" placeholder="••••" />
+      </div>
+      <p id="authError" class="text-sm text-rose-600 hidden flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-4 h-4"></i>username หรือ password ไม่ถูกต้อง</p>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button type="button" id="authCancel" class="seg-btn">ยกเลิก</button>
+        <button type="button" id="authSubmit" class="seg-btn" style="background:#0f1e3d;color:white;border-color:#0f1e3d;">เข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
@@ -315,18 +350,124 @@ function setCloudStatus(online){
   $('cloudText').textContent = online ? 'Cloud Live' : 'Offline';
 }
 
-/* Tabs */
+/* ============== Admin Auth (token-based via GAS) ============== */
+const PROTECTED_TABS = ['dashboard','calculator'];
+const TOKEN_KEY = 'fueltracker_token';
+
+const getToken = () => sessionStorage.getItem(TOKEN_KEY) || '';
+const setToken = (t) => sessionStorage.setItem(TOKEN_KEY, t);
+const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
+const isAuthed = () => !!getToken();
+
+function updateAuthUI(){
+  const authed = isAuthed();
+  document.querySelectorAll('.lock-icon').forEach(i => i.classList.toggle('hidden', authed));
+  $('logoutBtn').classList.toggle('hidden', !authed);
+}
+
+let pendingTab = null;
+function openAuthModal(targetTab){
+  pendingTab = targetTab;
+  const m = $('authModal');
+  m.classList.remove('hidden');
+  m.style.display = 'flex';
+  $('authUser').value = '';
+  $('authPass').value = '';
+  $('authError').classList.add('hidden');
+  setTimeout(() => $('authUser').focus(), 50);
+}
+function closeAuthModal(){
+  const m = $('authModal');
+  m.classList.add('hidden');
+  m.style.display = 'none';
+  pendingTab = null;
+}
+
+async function tryLogin(){
+  const u = $('authUser').value.trim();
+  const p = $('authPass').value;
+  if (!u || !p){
+    $('authError').textContent = 'กรุณากรอก username และ password';
+    $('authError').classList.remove('hidden');
+    return;
+  }
+  // Disable submit while waiting
+  $('authSubmit').disabled = true;
+  $('authSubmit').textContent = 'กำลังเข้าสู่ระบบ...';
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action:'login', user:u, pass:p })
+    });
+    const j = await res.json();
+    if (j && j.status === 'ok' && j.token){
+      setToken(j.token);
+      updateAuthUI();
+      const t = pendingTab || 'dashboard';
+      closeAuthModal();
+      showToast('เข้าสู่ระบบสำเร็จ', 'success');
+      switchTab(t);
+    } else {
+      $('authError').textContent = 'username หรือ password ไม่ถูกต้อง';
+      $('authError').classList.remove('hidden');
+      $('authPass').value = '';
+      $('authPass').focus();
+    }
+  } catch(err){
+    console.error(err);
+    $('authError').textContent = 'เชื่อมต่อไม่ได้ ลองอีกครั้ง';
+    $('authError').classList.remove('hidden');
+  } finally {
+    $('authSubmit').disabled = false;
+    $('authSubmit').textContent = 'เข้าสู่ระบบ';
+  }
+}
+
+$('authSubmit').addEventListener('click', tryLogin);
+$('authCancel').addEventListener('click', closeAuthModal);
+['authUser','authPass'].forEach(id => {
+  $(id).addEventListener('keypress', e => { if (e.key === 'Enter') tryLogin(); });
+});
+
+async function doLogout(){
+  const t = getToken();
+  clearToken();
+  updateAuthUI();
+  switchTab('record');
+  showToast('ออกจากระบบแล้ว', 'success');
+  if (t){
+    try { await fetch(GAS_URL + '?action=logout&token=' + encodeURIComponent(t)); } catch(_){}
+  }
+}
+$('logoutBtn').addEventListener('click', doLogout);
+
+function handleAuthError(){
+  // Token expired/invalid — clear and prompt login again
+  clearToken();
+  updateAuthUI();
+  switchTab('record');
+  showToast('Session หมดอายุ — กรุณา login ใหม่', 'warn');
+}
+
+/* ============== Tabs ============== */
+function switchTab(tab){
+  if (PROTECTED_TABS.includes(tab) && !isAuthed()){
+    openAuthModal(tab);
+    return;
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`[data-tab="${tab}"]`);
+  if (btn) btn.classList.add('active');
+  $('tab-record').classList.toggle('hidden', tab !== 'record');
+  $('tab-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+  $('tab-calculator').classList.toggle('hidden', tab !== 'calculator');
+  if (tab === 'dashboard') refreshData();
+  if (tab === 'calculator') populateCalcSelects();
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    $('tab-record').classList.toggle('hidden', tab !== 'record');
-    $('tab-dashboard').classList.toggle('hidden', tab !== 'dashboard');
-    $('tab-calculator').classList.toggle('hidden', tab !== 'calculator');
-    if (tab === 'dashboard') refreshData();
-    if (tab === 'calculator') populateCalcSelects();
-  });
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
 /* Segmented buttons (Type, Owner, Mode) */
@@ -458,12 +599,22 @@ function pick(row, ...keys){
   return undefined;
 }
 
-/* Fetch & normalize */
+/* Fetch & normalize — read endpoint requires token */
 async function refreshData(){
+  const tok = getToken();
+  if (!tok){
+    // Should not happen if tab was opened — but safeguard
+    handleAuthError();
+    return;
+  }
   try {
     $('vehicleTable').innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-400">กำลังโหลด...</td></tr>';
-    const res = await fetch(GAS_URL + '?action=read');
+    const res = await fetch(GAS_URL + '?action=read&token=' + encodeURIComponent(tok));
     const data = await res.json();
+    if (data && data.status === 'unauthorized'){
+      handleAuthError();
+      return;
+    }
     const raw = Array.isArray(data) ? data : (data.data || data.trips || []);
     allTrips = raw.map(r => {
       const startKm = parseFloat(pick(r,'StartKm','startkm')) || 0;
@@ -706,8 +857,19 @@ $('calcBtn').addEventListener('click', () => {
 
 window.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
-  refreshData();
+  updateAuthUI();
+  // Don't auto-load data — read endpoint needs admin token now.
+  // Cloud Live indicator now reflects ping result instead.
+  pingHealth();
 });
+
+async function pingHealth(){
+  try {
+    const res = await fetch(GAS_URL + '?action=ping');
+    const j = await res.json();
+    setCloudStatus(j && j.status === 'ok');
+  } catch(_){ setCloudStatus(false); }
+}
 </script>
 </body>
 </html>
