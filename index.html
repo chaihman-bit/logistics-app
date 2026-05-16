@@ -149,11 +149,35 @@
           <input type="hidden" name="owner" id="owner" required />
         </div>
         <div class="sm:col-span-2">
-          <label class="label-field" for="plate">ทะเบียนรถ</label>
+          <label class="label-field" for="plate">ทะเบียนรถ <span class="text-rose-500">*</span></label>
           <input type="text" id="plate" name="plate" class="input-field" placeholder="เช่น 1กข-1234 กรุงเทพฯ" required autocomplete="off" />
         </div>
+        <!-- Job Info section -->
+        <div class="sm:col-span-2 pt-2 border-t border-slate-100">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3"><i data-lucide="file-text" class="w-3 h-3 inline -mt-0.5"></i> ข้อมูลใบงาน</p>
+        </div>
         <div>
-          <label class="label-field" for="startKm">เลขไมล์เริ่ม (กม.)</label>
+          <label class="label-field" for="driver">ชื่อคนขับ <span class="text-rose-500">*</span></label>
+          <input type="text" id="driver" name="driver" class="input-field" placeholder="ชื่อ–สกุล" required autocomplete="off" />
+        </div>
+        <div>
+          <label class="label-field" for="jobOrder">เลขที่ใบสั่งงาน <span class="text-rose-500">*</span></label>
+          <input type="text" id="jobOrder" name="jobOrder" class="input-field" placeholder="เช่น JO-2026-001" required autocomplete="off" />
+        </div>
+        <div>
+          <label class="label-field" for="origin">ต้นทาง <span class="text-rose-500">*</span></label>
+          <input type="text" id="origin" name="origin" class="input-field" placeholder="เช่น คลังบางนา" required autocomplete="off" />
+        </div>
+        <div>
+          <label class="label-field" for="destination">ปลายทาง <span class="text-rose-500">*</span></label>
+          <input type="text" id="destination" name="destination" class="input-field" placeholder="เช่น สาขาขอนแก่น" required autocomplete="off" />
+        </div>
+        <!-- Fuel section -->
+        <div class="sm:col-span-2 pt-2 border-t border-slate-100">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3"><i data-lucide="fuel" class="w-3 h-3 inline -mt-0.5"></i> ข้อมูลน้ำมัน</p>
+        </div>
+        <div>
+          <label class="label-field" for="startKm">เลขไมล์เริ่ม (กม.) <span class="text-rose-500">*</span></label>
           <input type="number" id="startKm" name="startKm" class="input-field" placeholder="0" min="0" step="0.1" required />
         </div>
         <div>
@@ -516,6 +540,15 @@ $('tripForm').addEventListener('submit', async e => {
   if (!$('type').value)  return showToast('กรุณาเลือกประเภทรถ', 'error');
   if (!$('owner').value) return showToast('กรุณาเลือกเจ้าของรถ', 'error');
 
+  const driver      = $('driver').value.trim();
+  const jobOrder    = $('jobOrder').value.trim();
+  const origin      = $('origin').value.trim();
+  const destination = $('destination').value.trim();
+  if (!driver)      return showToast('กรุณากรอกชื่อคนขับ', 'error');
+  if (!jobOrder)    return showToast('กรุณากรอกเลขที่ใบสั่งงาน', 'error');
+  if (!origin)      return showToast('กรุณากรอกต้นทาง', 'error');
+  if (!destination) return showToast('กรุณากรอกปลายทาง', 'error');
+
   const s = parseFloat($('startKm').value), eKm = parseFloat($('endKm').value);
   const l = parseFloat($('fuelLiters').value), c = parseFloat($('fuelCost').value);
 
@@ -525,6 +558,7 @@ $('tripForm').addEventListener('submit', async e => {
   const payload = {
     type:$('type').value, owner:$('owner').value,
     plate:$('plate').value.trim(),
+    driver, jobOrder, origin, destination,
     startKm:s, endKm:eKm, distance:eKm-s,
     fuelLiters:l, fuelCost:c
   };
@@ -622,14 +656,18 @@ async function refreshData(){
       const dist    = parseFloat(pick(r,'Distance','distance')) || 0;
       const owner   = String(pick(r,'Owner','owner') || '').trim() || 'ไม่ระบุ';
       return {
-        timestamp: pick(r,'Timestamp','timestamp'),
-        type:      pick(r,'Type','type'),
-        plate:     String(pick(r,'Plate','plate') || '').trim(),
-        owner:     owner,
+        timestamp:   pick(r,'Timestamp','timestamp'),
+        type:        pick(r,'Type','type'),
+        plate:       String(pick(r,'Plate','plate') || '').trim(),
+        owner:       owner,
+        driver:      String(pick(r,'Driver','driver') || '').trim(),
+        jobOrder:    String(pick(r,'JobOrder','joborder') || '').trim(),
+        origin:      String(pick(r,'Origin','origin') || '').trim(),
+        destination: String(pick(r,'Destination','destination') || '').trim(),
         startKm, endKm,
-        distance:  dist > 0 ? dist : Math.max(0, endKm - startKm),
-        fuelLiters:parseFloat(pick(r,'FuelLiters','fuelliters')) || 0,
-        fuelCost:  parseFloat(pick(r,'FuelCost','fuelcost','ค่าน้ำมัน(บาท)','ค่าน้ำมัน (บาท)')) || 0
+        distance:    dist > 0 ? dist : Math.max(0, endKm - startKm),
+        fuelLiters:  parseFloat(pick(r,'FuelLiters','fuelliters')) || 0,
+        fuelCost:    parseFloat(pick(r,'FuelCost','fuelcost','ค่าน้ำมัน(บาท)','ค่าน้ำมัน (บาท)')) || 0
       };
     }).filter(r => r.type && r.plate);
     setCloudStatus(true);

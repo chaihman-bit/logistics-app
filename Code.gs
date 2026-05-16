@@ -17,7 +17,7 @@
 
 const SHEET_ID   = '1GJLqBSsf1r963zX6t-EjlfH7l0xEXaI0R_qKZTj9lfA';
 const SHEET_NAME = 'Trips';
-const REQUIRED_COLS = ['Timestamp','Type','Plate','Owner','StartKm','EndKm','Distance','FuelLiters','FuelCost'];
+const REQUIRED_COLS = ['Timestamp','Type','Plate','Owner','Driver','JobOrder','Origin','Destination','StartKm','EndKm','Distance','FuelLiters','FuelCost'];
 
 // ===== Admin credentials (server-side only — never sent to frontend) =====
 const ADMIN_USER = 'admin';
@@ -151,17 +151,21 @@ function doPost(e) {
     try {
       lock.waitLock(10000);
 
-      const type       = String(body.type || '').trim();
-      const plate      = String(body.plate || '').trim();
-      const owner      = String(body.owner || 'บริษัท').trim();
-      const startKm    = Number(body.startKm) || 0;
-      const endKm      = Number(body.endKm) || 0;
-      const distance   = Number(body.distance) || Math.max(0, endKm - startKm);
-      const fuelLiters = Number(body.fuelLiters) || 0;
-      const fuelCost   = Number(body.fuelCost) || 0;
+      const type        = String(body.type || '').trim();
+      const plate       = String(body.plate || '').trim();
+      const owner       = String(body.owner || 'บริษัท').trim();
+      const driver      = String(body.driver || '').trim();
+      const jobOrder    = String(body.jobOrder || '').trim();
+      const origin      = String(body.origin || '').trim();
+      const destination = String(body.destination || '').trim();
+      const startKm     = Number(body.startKm) || 0;
+      const endKm       = Number(body.endKm) || 0;
+      const distance    = Number(body.distance) || Math.max(0, endKm - startKm);
+      const fuelLiters  = Number(body.fuelLiters) || 0;
+      const fuelCost    = Number(body.fuelCost) || 0;
 
-      if (!type || !plate) {
-        return jsonOut({ status: 'error', message: 'Missing type or plate' });
+      if (!type || !plate || !driver || !jobOrder || !origin || !destination) {
+        return jsonOut({ status: 'error', message: 'Missing required fields (type/plate/driver/jobOrder/origin/destination)' });
       }
 
       const sh = getSheet_();
@@ -170,15 +174,19 @@ function doPost(e) {
       const row = new Array(lastCol).fill('');
 
       const fieldMap = {
-        timestamp:  new Date(),
-        type:       type,
-        plate:      plate,
-        owner:      owner,
-        startkm:    startKm,
-        endkm:      endKm,
-        distance:   distance,
-        fuelliters: fuelLiters,
-        fuelcost:   fuelCost
+        timestamp:   new Date(),
+        type:        type,
+        plate:       plate,
+        owner:       owner,
+        driver:      driver,
+        joborder:    jobOrder,
+        origin:      origin,
+        destination: destination,
+        startkm:     startKm,
+        endkm:       endKm,
+        distance:    distance,
+        fuelliters:  fuelLiters,
+        fuelcost:    fuelCost
       };
 
       Object.keys(fieldMap).forEach(key => {
